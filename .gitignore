@@ -1,0 +1,18 @@
+# Ambiente Virtual
+.venv/
+venv/
+ENV/
+
+# Arquivos do sistema macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Caches do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos de configuração do VS Code (opcional)
+.vscode/
