@@ -1,4 +1,9 @@
-from datasets.xor import X, y
+from datasets.adult import (
+    X_train,
+    X_test,
+    y_train,
+    y_test
+)
 
 from mlp.network import NeuralNetwork
 from mlp.layers import Dense
@@ -12,15 +17,12 @@ from mlp.activations import (
 from mlp.losses import MSE
 
 from mlp.optimizers import (
-    SGD,
-    Momentum,
-    RMSProp,
-    Adam,
-    AdamW,
-    Nadam
+    Adam
 )
 
 from mlp.grid_search import GridSearch
+
+from mlp.metrics import Accuracy
 
 
 def build_network(params):
@@ -35,7 +37,7 @@ def build_network(params):
 
     network.add(
         Dense(
-            input_size=2,
+            input_size=X_train.shape[1],
             output_size=params["neurons"],
             activation=activation
         )
@@ -55,56 +57,35 @@ def build_network(params):
 def main():
 
     print("=" * 60)
-    print("GRID SEARCH - XOR")
+    print("GRID SEARCH - ADULT INCOME")
     print("=" * 60)
+
+    print("\nDados:")
+    print(f"X_train: {X_train.shape}")
+    print(f"y_train: {y_train.shape}")
+    print(f"X_test:  {X_test.shape}")
+    print(f"y_test:  {y_test.shape}")
 
     param_grid = {
 
         "neurons": [
-            4,
             8,
             16
         ],
 
-        # classes, não instâncias
         "activation": [
             ReLU,
             Tanh
         ],
 
-        # fábricas de otimizadores
         "optimizer": [
-
-            lambda: SGD(
-                lr=0.01
-            ),
-
-            lambda: Momentum(
-                lr=0.01,
-                momentum=0.9
-            ),
-
-            lambda: RMSProp(
-                lr=0.001
-            ),
-
             lambda: Adam(
-                lr=0.001
-            ),
-
-            lambda: AdamW(
-                lr=0.001,
-                weight_decay=0.01
-            ),
-
-            lambda: Nadam(
                 lr=0.001
             )
         ],
 
         "epochs": [
-            1000,
-            5000
+            100
         ],
 
         "loss": [
@@ -117,70 +98,73 @@ def main():
         param_grid=param_grid
     )
 
-    search.fit(X, y)
+    print("\n")
+    print("=" * 60)
+    print("INICIANDO GRID SEARCH")
+    print("=" * 60)
+
+    search.fit(
+        X_train,
+        y_train
+    )
 
     print("\n")
     print("=" * 60)
     print("MELHOR CONFIGURAÇÃO")
     print("=" * 60)
 
-    print(f"Acurácia: {search.best_score:.4f}")
-    print(f"Parâmetros: {search.best_params}")
+    print(
+        f"Accuracy de treino: "
+        f"{search.best_score:.4f}"
+    )
+
+    print(
+        f"Loss de treino: "
+        f"{search.best_loss:.6f}"
+    )
+
+    print(
+        f"Parâmetros: "
+        f"{search.best_params}"
+    )
+
+    # ==========================================
+    # Avaliação no conjunto de teste
+    # ==========================================
 
     print("\n")
     print("=" * 60)
-    print("TODOS OS RESULTADOS")
-    print("=" * 60)
-
-    search.summary()
-
-    print("\n")
-    print("=" * 60)
-    print("TREINANDO MELHOR MODELO")
-    print("=" * 60)
-
-    print("\n")
-    print("=" * 60)
-    print("MELHOR MODELO")
+    print("AVALIAÇÃO NO CONJUNTO DE TESTE")
     print("=" * 60)
 
     best_network = search.best_model
 
-    predictions = (
-        best_network.forward(X)
+    predictions = best_network.forward(
+        X_test
     )
 
-    print("\nPredições:")
-
-    print(predictions)
-
-    print("\nClasses:")
+    test_accuracy = Accuracy.calculate(
+        y_test,
+        predictions
+    )
 
     print(
-        (predictions > 0.5)
-        .astype(int)
+        f"\nAccuracy no teste: "
+        f"{test_accuracy:.4f}"
     )
 
-    best_network.fit(
-        X,
-        y,
-        epochs=search.best_params["epochs"],
-        loss_function=search.best_params["loss"](),
-        optimizer=search.best_params["optimizer"]()
-    )
+    classes = (
+        predictions > 0.5
+    ).astype(int)
 
-    predictions = best_network.forward(X)
+    print("\nPrimeiras 20 predições:")
+    print(predictions[:20])
 
-    print("\nPredições:")
+    print("\nPrimeiras 20 classes previstas:")
+    print(classes[:20])
 
-    print(predictions)
-
-    print("\nClasses:")
-
-    print(
-        (predictions > 0.5)
-        .astype(int)
-    )
+    print("\nPrimeiras 20 classes reais:")
+    print(y_test[:20])
 
 
 if __name__ == "__main__":
