@@ -1,3 +1,7 @@
+#para garantir a reprodutibilidade dos experimentos, foi utilizada uma semente aleatória fixa
+import numpy as np
+np.random.seed(42)
+
 from datasets.adult import (
     X_train,
     X_test,
