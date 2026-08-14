@@ -159,5 +159,5 @@ class NeuralNetwork:
             if epoch % 100 == 0:
 
                 print(
-                    f"Epoch {epoch} Loss={loss}"
+                    f"Epoch {epoch} | Loss={loss}"
                 )

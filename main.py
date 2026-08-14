@@ -70,12 +70,14 @@ def main():
 
         "neurons": [
             8,
-            16
+            16,
+            24,
+            32,
+            64
         ],
 
         "activation": [
-            ReLU,
-            Tanh
+            ReLU
         ],
 
         "optimizer": [

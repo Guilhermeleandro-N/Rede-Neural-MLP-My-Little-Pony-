@@ -1,20 +1,38 @@
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import kagglehub
-from kagglehub import KaggleDatasetAdapter
+#from kagglehub import KaggleDatasetAdapter
 import pandas as pd
-
+import os
 
 # ==========================================
 # 1. Carregamento do dataset
 # ==========================================
 
-df = kagglehub.dataset_load(
+""" df = kagglehub.dataset_load(
     KaggleDatasetAdapter.PANDAS,
     "wenruliu/adult-income-dataset",
-    "adult.csv"
-)
+    "adult.csv",
+    pandas_kwargs={
+        "encoding": "latin1",
+        "sep": ","
+    }
+) """
 
+path = kagglehub.dataset_download(
+    "wenruliu/adult-income-dataset"
+)
+print("Dataset baixado em:")
+print(path)
+
+
+
+arquivo = os.path.join(path, "adult.csv")
+
+df = pd.read_csv(
+    arquivo,
+    encoding="latin1"
+)
 
 # ==========================================
 # 2. Tratamento dos valores ausentes
@@ -158,9 +176,6 @@ print(X_test.isnull().sum().sum())
 
 print("\nTipos de X_train:")
 print(X_train.dtypes.value_counts())
-# ==========================================
-# 8. Conversão para NumPy
-# ==========================================
 # ==========================================
 # 8. Conversão para NumPy
 # ==========================================
