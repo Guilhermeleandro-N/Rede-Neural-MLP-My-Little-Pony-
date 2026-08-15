@@ -186,7 +186,7 @@ class GridSearch:
             )
 
             print(
-                f"Loss = {loss:.6f}"
+                f"Loss Final = {loss:.6f}"
             )
 
             #

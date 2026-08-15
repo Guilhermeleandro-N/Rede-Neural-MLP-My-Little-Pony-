@@ -39,17 +39,32 @@ def build_network(params):
 
     activation = params["activation"]()
 
+    arquitetura = params["arquitetura"]
+
+    # Primeira camada oculta
     network.add(
         Dense(
             input_size=X_train.shape[1],
-            output_size=params["neurons"],
+            output_size=arquitetura[0],
             activation=activation
         )
     )
 
+    # Demais camadas ocultas
+    for i in range(1, len(arquitetura)):
+
+        network.add(
+            Dense(
+                input_size=arquitetura[i - 1],
+                output_size=arquitetura[i],
+                activation=activation
+            )
+        )
+
+    # Camada de saída
     network.add(
         Dense(
-            input_size=params["neurons"],
+            input_size=arquitetura[-1],
             output_size=1,
             activation=Sigmoid()
         )
@@ -72,12 +87,19 @@ def main():
 
     param_grid = {
 
-        "neurons": [
+"""         "neurons": [
             8,
             16,
             24,
             32,
             64
+        ], """
+
+        "arquitetura": [
+            [32],
+            [32, 16],
+            [32, 16, 8],
+            [32, 16, 8, 4]
         ],
 
         "activation": [
