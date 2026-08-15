@@ -15,6 +15,13 @@ from mlp.layers import Dense
 from mlp.activations import (
     ReLU,
     Tanh,
+    LeakyReLU,
+    GELU,
+    ELU,
+    SELU,
+    Swish,
+    Softplus,
+    Mish,
     Sigmoid
 )
 
@@ -87,23 +94,15 @@ def main():
 
     param_grid = {
 
-"""         "neurons": [
-            8,
-            16,
-            24,
-            32,
-            64
-        ], """
-
         "arquitetura": [
-            [32],
-            [32, 16],
-            [32, 16, 8],
-            [32, 16, 8, 4]
+            [32, 16, 8]
         ],
 
         "activation": [
-            ReLU
+            ReLU,
+            Tanh,
+            Mish
+
         ],
 
         "optimizer": [
