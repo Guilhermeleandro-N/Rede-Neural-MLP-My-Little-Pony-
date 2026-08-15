@@ -1,7 +1,12 @@
 import itertools
 
-from mlp.metrics import Accuracy
+from mlp.metrics import (
+    Accuracy,
+    Precision,
+    Recall,
+    F1Score
 
+)
 
 class ExperimentResult:
 
@@ -132,6 +137,21 @@ class GridSearch:
                 )
             )
 
+            precision = Precision.calculate(
+                y,
+                predictions
+            )
+
+            recall = Recall.calculate(
+                y,
+                predictions
+            )
+
+            f1 = F1Score.calculate(
+                y,
+                predictions
+            )
+
             loss = (
                 loss_function.forward(
                     y,
@@ -151,6 +171,18 @@ class GridSearch:
 
             print(
                 f"Accuracy = {score:.4f}"
+            )
+
+            print(
+                f"Precision = {precision:.4f}"
+            )
+
+            print(
+                f"Recall = {recall:.4f}"
+            )
+
+            print(
+                f"F1-score = {f1:.4f}"
             )
 
             print(
