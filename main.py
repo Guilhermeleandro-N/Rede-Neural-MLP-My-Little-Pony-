@@ -97,6 +97,67 @@ def main():
     print(f"X_test:  {X_test.shape}")
     print(f"y_test:  {y_test.shape}")
 
+# # EXPERIMENTO 1 - NÚMERO DE NEURÔNIOS
+#     param_grid = {
+
+#         "arquitetura": [
+#             [4],
+#             [8],
+#             [16],
+#             [32],
+#             [64]
+#         ],
+
+#         "activation": [
+#             ReLU
+#         ],
+
+#         "optimizer": [
+#             lambda: Adam(
+#                 lr=0.001
+#             )
+#         ],
+
+#         "epochs": [
+#             100
+#         ],
+
+#         "loss": [
+#             MSE
+#         ]
+#     }
+
+
+
+# # EXPERIMENTO 2 - NÚMERO DE CAMADAS OCULTAS
+#     param_grid = {
+#         "arquitetura": [
+#             [32],
+#             [32, 16],
+#             [32, 16, 8],
+#             [32, 16, 8, 4]
+#         ],
+#         "activation": [
+#             ReLU
+#         ],
+
+#         "optimizer": [
+#             lambda: Adam(
+#                 lr=0.001
+#             )
+#         ],
+
+#         "epochs": [
+#             100
+#         ],
+
+#         "loss": [
+#             MSE
+#         ]
+#     }
+
+
+
     param_grid = {
 
         "arquitetura": [
