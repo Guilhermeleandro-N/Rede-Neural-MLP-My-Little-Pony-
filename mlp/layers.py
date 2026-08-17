@@ -19,7 +19,8 @@ class Dense:
         self,
         input_size,
         output_size,
-        activation
+        activation,
+        initializer=HeInitializer
     ):
         """
         Inicializa a camada.
@@ -34,10 +35,13 @@ class Dense:
 
         activation : Activation
             Função de ativação utilizada pela camada.
+
+        initializer : Initializer
+            Estratégia utilizada para inicializar os pesos.
         """
 
         self.weights = (
-            HeInitializer.initialize(
+            initializer.initialize(
                 input_size,
                 output_size
             )

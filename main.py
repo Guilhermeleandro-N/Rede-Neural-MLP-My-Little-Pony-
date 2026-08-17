@@ -11,6 +11,10 @@ from datasets.adult import (
 
 from mlp.network import NeuralNetwork
 from mlp.layers import Dense
+from mlp.initializers import (
+    HeInitializer,
+    XavierInitializer
+)
 
 from mlp.activations import (
     ReLU,
@@ -53,12 +57,18 @@ def build_network(params):
 
     arquitetura = params["arquitetura"]
 
+    initializer = params.get(
+        "initializer",
+        HeInitializer
+    )
+
     # Primeira camada oculta
     network.add(
         Dense(
             input_size=X_train.shape[1],
             output_size=arquitetura[0],
-            activation=activation
+            activation=activation,
+            initializer=initializer
         )
     )
 
@@ -69,7 +79,8 @@ def build_network(params):
             Dense(
                 input_size=arquitetura[i - 1],
                 output_size=arquitetura[i],
-                activation=activation
+                activation=activation,
+                initializer=initializer
             )
         )
 
@@ -78,7 +89,8 @@ def build_network(params):
         Dense(
             input_size=arquitetura[-1],
             output_size=1,
-            activation=Sigmoid()
+            activation=Sigmoid(),
+            initializer=initializer
         )
     )
 
@@ -185,6 +197,95 @@ def main():
             MSE
         ]
     }
+
+        # ==========================================
+    # EXPERIMENTO — INICIALIZADORES
+    # ==========================================
+
+    print("\n")
+    print("=" * 60)
+    print("EXPERIMENTO - COMPARAÇÃO DE INICIALIZADORES")
+    print("=" * 60)
+
+    initializers = [
+        ("He", HeInitializer),
+        ("Xavier", XavierInitializer)
+    ]
+
+    for initializer_name, initializer in initializers:
+
+        print("\n")
+        print("-" * 60)
+        print(f"Inicializador: {initializer_name}")
+        print("-" * 60)
+
+        # Reinicia a seed para tornar a comparação reprodutível
+        np.random.seed(42)
+
+        experiment_params = {
+            "arquitetura": [32, 16, 8],
+            "activation": ReLU,
+            "initializer": initializer,
+            "optimizer": lambda: Adam(lr=0.001),
+            "epochs": 100,
+            "loss": MSE
+        }
+
+        network = build_network(
+            experiment_params
+        )
+
+        optimizer = (
+            experiment_params["optimizer"]()
+        )
+
+        loss_function = (
+            experiment_params["loss"]()
+        )
+
+        network.fit(
+            X_train,
+            y_train,
+            epochs=experiment_params["epochs"],
+            loss_function=loss_function,
+            optimizer=optimizer
+        )
+
+        predictions = network.forward(
+            X_train
+        )
+
+        accuracy = Accuracy.calculate(
+            y_train,
+            predictions
+        )
+
+        precision = Precision.calculate(
+            y_train,
+            predictions
+        )
+
+        recall = Recall.calculate(
+            y_train,
+            predictions
+        )
+
+        f1 = F1Score.calculate(
+            y_train,
+            predictions
+        )
+
+        loss = loss_function.forward(
+            y_train,
+            predictions
+        )
+
+        print(f"\nResultado - {initializer_name}")
+        print(f"Accuracy  = {accuracy:.4f}")
+        print(f"Precision = {precision:.4f}")
+        print(f"Recall    = {recall:.4f}")
+        print(f"F1-score  = {f1:.4f}")
+        print(f"Loss      = {loss:.6f}")
 
     search = GridSearch(
         network_builder=build_network,
