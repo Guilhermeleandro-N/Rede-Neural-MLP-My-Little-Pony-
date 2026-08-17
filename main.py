@@ -203,7 +203,7 @@ def main():
         ]
     }
 
-        # ==========================================
+    # ==========================================
     # EXPERIMENTO — INICIALIZADORES
     # ==========================================
 
@@ -230,7 +230,7 @@ def main():
         np.random.seed(42)
 
         experiment_params = {
-            "arquitetura": [32, 16, 8],
+            "arquitetura": [64, 32, 16, 8],
             "activation": ReLU,
             "initializer": initializer,
             "optimizer": lambda: Adam(lr=0.001),
