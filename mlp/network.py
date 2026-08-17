@@ -156,7 +156,7 @@ class NeuralNetwork:
             for layer in self.layers:
                 optimizer.update(layer)
 
-            if epoch % 100 == 0:
+            if epoch % 10 == 0:
 
                 print(
                     f"Epoch {epoch} | Loss = {loss}"

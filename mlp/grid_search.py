@@ -14,11 +14,17 @@ class ExperimentResult:
         self,
         params,
         score,
+        precision,
+        recall,
+        f1,
         loss
     ):
 
         self.params = params
         self.score = score
+        self.precision = precision
+        self.recall = recall
+        self.f1 = f1
         self.loss = loss
 
 
@@ -84,15 +90,24 @@ class GridSearch:
         y
     ):
 
-        experiment_number = 1
+#de "experiment" para "configuration" para nao nos confundirmos com os experimentos do documento
+        configuration_number = 1
 
         for params in self.generate_combinations():
 
             print(
-                f"\nExperimento {experiment_number}"
+                f"\nConfiguração {configuration_number}"
             )
 
-            experiment_number += 1
+            print(
+                f"Arquitetura: {params['arquitetura']}"
+            )
+
+            print(
+                f"Ativação: {params['activation'].__name__}"
+            )
+
+            configuration_number += 1
 
             current_params = (
                 params.copy()
@@ -165,6 +180,9 @@ class GridSearch:
                         current_params
                     ),
                     score,
+                    precision,
+                    recall,
+                    f1,
                     loss
                 )
             )
