@@ -183,6 +183,11 @@ def main():
 
         ],
 
+        "initializer": [
+        HeInitializer,
+        XavierInitializer
+        ],
+
         "optimizer": [
             lambda: Adam(
                 lr=0.001
@@ -206,6 +211,8 @@ def main():
     print("=" * 60)
     print("EXPERIMENTO - COMPARAÇÃO DE INICIALIZADORES")
     print("=" * 60)
+
+    resultados_inicializadores = []
 
     initializers = [
         ("He", HeInitializer),
@@ -280,12 +287,60 @@ def main():
             predictions
         )
 
+        resultados_inicializadores.append({
+            "Experimento": initializer_name,
+            "Arquitetura": "32-16-8",
+            "Ativação": "ReLU",
+            "Inicializador": initializer_name,
+            "Otimizador": "Adam",
+            "LR": 0.001,
+            "Épocas": 100,
+            "Acurácia": accuracy,
+            "F1": f1
+        })
+
         print(f"\nResultado - {initializer_name}")
         print(f"Accuracy  = {accuracy:.4f}")
         print(f"Precision = {precision:.4f}")
         print(f"Recall    = {recall:.4f}")
         print(f"F1-score  = {f1:.4f}")
         print(f"Loss      = {loss:.6f}")
+
+    # ==========================================
+    # TABELA RESUMO — INICIALIZADORES
+    # ==========================================
+
+    print("\n")
+    print("=" * 100)
+    print("TABELA RESUMO - EXPERIMENTO DE INICIALIZADORES")
+    print("=" * 100)
+
+    print(
+        f"{'Experimento':<12}"
+        f"{'Arquitetura':<15}"
+        f"{'Ativação':<12}"
+        f"{'Inicializador':<15}"
+        f"{'Otimizador':<12}"
+        f"{'LR':<10}"
+        f"{'Épocas':<10}"
+        f"{'Acurácia':<12}"
+        f"{'F1':<10}"
+    )
+
+    print("-" * 100)
+
+    for resultado in resultados_inicializadores:
+        print(
+            f"{resultado['Experimento']:<12}"
+            f"{resultado['Arquitetura']:<15}"
+            f"{resultado['Ativação']:<12}"
+            f"{resultado['Inicializador']:<15}"
+            f"{resultado['Otimizador']:<12}"
+            f"{resultado['LR']:<10}"
+            f"{resultado['Épocas']:<10}"
+            f"{resultado['Acurácia']:<12.4f}"
+            f"{resultado['F1']:<10.4f}"
+        )
 
     search = GridSearch(
         network_builder=build_network,
@@ -350,9 +405,47 @@ def main():
     print(f"F1-score  = {test_f1:.4f}")
     print(f"Loss      = {test_loss:.6f}")
 
+
+
     classes = (
         predictions > 0.5
     ).astype(int)
+
+        # ==========================================
+    # MATRIZ DE CONFUSÃO
+    # ==========================================
+
+    tn = np.sum(
+        (y_test == 0) & (classes == 0)
+    )
+
+    fp = np.sum(
+        (y_test == 0) & (classes == 1)
+    )
+
+    fn = np.sum(
+        (y_test == 1) & (classes == 0)
+    )
+
+    tp = np.sum(
+        (y_test == 1) & (classes == 1)
+    )
+
+    print("\n")
+    print("=" * 60)
+    print("MATRIZ DE CONFUSÃO")
+    print("=" * 60)
+
+    print("\n                 Predito")
+    print("              0          1")
+    print(f"Real  0     {tn:6d}     {fp:6d}")
+    print(f"      1     {fn:6d}     {tp:6d}")
+
+    print("\nComponentes:")
+    print(f"Verdadeiros Negativos (TN): {tn}")
+    print(f"Falsos Positivos      (FP): {fp}")
+    print(f"Falsos Negativos      (FN): {fn}")
+    print(f"Verdadeiros Positivos (TP): {tp}")
 
     print("\nPrimeiras 20 predições:")
     print(predictions[:20])

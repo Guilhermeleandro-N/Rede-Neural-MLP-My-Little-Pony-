@@ -111,6 +111,10 @@ class GridSearch:
                 f"Ativação: {params['activation'].__name__}"
             )
 
+            print(
+                f"Inicializador: {params['initializer'].__name__}"
+            )
+
             configuration_number += 1
 
             current_params = (
@@ -259,6 +263,7 @@ class GridSearch:
             f"{'Config.':<10}"
             f"{'Arquitetura':<20}"
             f"{'Ativação':<12}"
+            f"{'Inicializador':<16}"
             f"{'Accuracy':<12}"
             f"{'Precision':<12}"
             f"{'Recall':<12}"
@@ -272,11 +277,13 @@ class GridSearch:
 
             arquitetura = result.params["arquitetura"]
             activation = result.params["activation"]
+            initializer = result.params["initializer"]
 
             print(
                 f"{i:<10}"
                 f"{str(arquitetura):<20}"
                 f"{activation:<12}"
+                f"{initializer:<16}"
                 f"{result.score:<12.4f}"
                 f"{result.precision:<12.4f}"
                 f"{result.recall:<12.4f}"
@@ -314,6 +321,12 @@ class GridSearch:
                 )
 
             elif key == "loss":
+
+                pretty[key] = (
+                    value.__name__
+                )
+
+            elif key == "initializer":
 
                 pretty[key] = (
                     value.__name__
