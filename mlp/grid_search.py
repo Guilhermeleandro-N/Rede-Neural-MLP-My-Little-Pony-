@@ -1,12 +1,13 @@
 import itertools
+import numpy as np
 
 from mlp.metrics import (
     Accuracy,
     Precision,
     Recall,
     F1Score
-
 )
+
 
 class ExperimentResult:
 
@@ -40,21 +41,22 @@ class GridSearch:
         self,
         network_builder,
         param_grid,
-        metric=Accuracy
+        metric=Accuracy,
+        random_seed=42
     ):
 
-        self.network_builder = (
-            network_builder
-        )
-
+        self.network_builder = network_builder
         self.param_grid = param_grid
-
         self.metric = metric
+
+        # Seed usada para garantir
+        # reprodutibilidade entre as configurações.
+        self.random_seed = random_seed
 
         self.results = []
 
+        # Melhor configuração
         self.best_score = -1
-
         self.best_loss = float("inf")
 
         self.best_precision = 0
@@ -62,8 +64,37 @@ class GridSearch:
         self.best_f1 = 0
 
         self.best_params = None
-
         self.best_model = None
+
+        # Pior configuração
+        self.worst_score = float("inf")
+        self.worst_loss = -1
+
+        self.worst_precision = 0
+        self.worst_recall = 0
+        self.worst_f1 = 0
+
+        self.worst_params = None
+
+
+    # ============================================================
+    # TOTAL DE COMBINAÇÕES
+    # ============================================================
+
+    def total_combinations(self):
+
+        total = 1
+
+        for values in self.param_grid.values():
+
+            total *= len(values)
+
+        return total
+
+
+    # ============================================================
+    # GERAÇÃO DAS COMBINAÇÕES
+    # ============================================================
 
     def generate_combinations(self):
 
@@ -88,38 +119,103 @@ class GridSearch:
                 )
             )
 
+
+    # ============================================================
+    # EXECUÇÃO DO GRID SEARCH
+    # ============================================================
+
     def fit(
         self,
-        X,
-        y
+        X_train,
+        y_train,
+        X_val,
+        y_val
     ):
 
-#de "experiment" para "configuration" para nao nos confundirmos com os experimentos do documento
+        total = self.total_combinations()
+
+        print("\n")
+        print("=" * 60)
+        print("GRID SEARCH")
+        print("=" * 60)
+
+        print(
+            f"Total de combinações a serem avaliadas: {total}"
+        )
+
         configuration_number = 1
+
 
         for params in self.generate_combinations():
 
+            print("\n")
+            print("=" * 60)
+
             print(
-                f"\nConfiguração {configuration_number}"
+                f"Configuração "
+                f"{configuration_number}/{total}"
+            )
+
+            print("=" * 60)
+
+            print(
+                f"Arquitetura: "
+                f"{params['arquitetura']}"
             )
 
             print(
-                f"Arquitetura: {params['arquitetura']}"
+                f"Ativação: "
+                f"{params['activation'].__name__}"
             )
 
             print(
-                f"Ativação: {params['activation'].__name__}"
+                f"Inicializador: "
+                f"{params['initializer'].__name__}"
             )
 
             print(
-                f"Inicializador: {params['initializer'].__name__}"
+                f"Otimizador: "
+                f"{params['optimizer'].__name__}"
             )
 
-            configuration_number += 1
+            print(
+                f"Learning Rate: "
+                f"{params['learning_rate']}"
+            )
+
+            print(
+                f"Épocas: "
+                f"{params['epochs']}"
+            )
+
 
             current_params = (
                 params.copy()
             )
+
+
+            # ====================================================
+            # REPRODUTIBILIDADE
+            # ====================================================
+            #
+            # Reinicia a seed antes de construir cada rede.
+            #
+            # Dessa forma, cada configuração parte de uma
+            # sequência aleatória controlada.
+            #
+            # Arquiteturas diferentes naturalmente possuem
+            # quantidades diferentes de pesos, mas a execução
+            # continua sendo reproduzível.
+            #
+
+            np.random.seed(
+                self.random_seed
+            )
+
+
+            # ==========================================
+            # Construção da rede
+            # ==========================================
 
             network = (
                 self.network_builder(
@@ -127,11 +223,25 @@ class GridSearch:
                 )
             )
 
+
+            # ==========================================
+            # Criação do otimizador
+            # ==========================================
+
             optimizer = (
                 current_params[
                     "optimizer"
-                ]()
+                ](
+                    lr=current_params[
+                        "learning_rate"
+                    ]
+                )
             )
+
+
+            # ==========================================
+            # Função de perda
+            # ==========================================
 
             loss_function = (
                 current_params[
@@ -139,9 +249,14 @@ class GridSearch:
                 ]()
             )
 
+
+            # ==========================================
+            # Treinamento
+            # ==========================================
+
             network.fit(
-                X,
-                y,
+                X_train,
+                y_train,
                 epochs=current_params[
                     "epochs"
                 ],
@@ -149,38 +264,55 @@ class GridSearch:
                 optimizer=optimizer
             )
 
+
+            # ==========================================
+            # Avaliação no conjunto de validação
+            # ==========================================
+
             predictions = (
-                network.forward(X)
+                network.forward(
+                    X_val
+                )
             )
+
 
             score = (
                 self.metric.calculate(
-                    y,
+                    y_val,
                     predictions
                 )
             )
 
+
             precision = Precision.calculate(
-                y,
+                y_val,
                 predictions
             )
+
 
             recall = Recall.calculate(
-                y,
+                y_val,
                 predictions
             )
 
+
             f1 = F1Score.calculate(
-                y,
+                y_val,
                 predictions
             )
+
 
             loss = (
                 loss_function.forward(
-                    y,
+                    y_val,
                     predictions
                 )
             )
+
+
+            # ==========================================
+            # Armazena os resultados
+            # ==========================================
 
             self.results.append(
                 ExperimentResult(
@@ -195,8 +327,15 @@ class GridSearch:
                 )
             )
 
+
+            # ==========================================
+            # Resultado da configuração
+            # ==========================================
+
+            print("\nResultado:")
+
             print(
-                f"Accuracy = {score:.4f}"
+                f"Accuracy  = {score:.4f}"
             )
 
             print(
@@ -204,22 +343,24 @@ class GridSearch:
             )
 
             print(
-                f"Recall = {recall:.4f}"
+                f"Recall    = {recall:.4f}"
             )
 
             print(
-                f"F1-score = {f1:.4f}"
+                f"F1-score  = {f1:.4f}"
             )
 
             print(
-                f"Loss Final = {loss:.6f}"
+                f"Loss      = {loss:.6f}"
             )
 
+
+            # ====================================================
+            # MELHOR CONFIGURAÇÃO
+            # ====================================================
             #
-            # Critério de desempate
-            #
-            # 1) maior accuracy
-            # 2) menor loss
+            # 1) Maior Accuracy
+            # 2) Menor Loss em caso de empate
             #
 
             if (
@@ -234,36 +375,76 @@ class GridSearch:
                 self.best_score = score
 
                 self.best_precision = precision
-
                 self.best_recall = recall
-
                 self.best_f1 = f1
-
                 self.best_loss = loss
 
                 self.best_params = (
                     current_params.copy()
                 )
 
-                #
-                # Guarda a rede treinada
-                #
                 self.best_model = network
 
+
+            # ====================================================
+            # PIOR CONFIGURAÇÃO
+            # ====================================================
+            #
+            # 1) Menor Accuracy
+            # 2) Maior Loss em caso de empate
+            #
+
+            if (
+                score < self.worst_score
+                or
+                (
+                    score == self.worst_score
+                    and loss > self.worst_loss
+                )
+            ):
+
+                self.worst_score = score
+
+                self.worst_precision = precision
+                self.worst_recall = recall
+                self.worst_f1 = f1
+                self.worst_loss = loss
+
+                self.worst_params = (
+                    current_params.copy()
+                )
+
+
+            configuration_number += 1
+
+
         return self
+
+
+    # ============================================================
+    # RESUMO
+    # ============================================================
 
     def summary(self):
 
         print("\n")
-        print("=" * 100)
-        print("RESULTADOS")
-        print("=" * 100)
+        print("=" * 150)
 
         print(
-            f"{'Config.':<10}"
+            "RESULTADOS DO GRID SEARCH"
+        )
+
+        print("=" * 150)
+
+
+        print(
+            f"{'Config.':<9}"
             f"{'Arquitetura':<20}"
             f"{'Ativação':<12}"
-            f"{'Inicializador':<16}"
+            f"{'Inicializador':<18}"
+            f"{'Otimizador':<14}"
+            f"{'LR':<12}"
+            f"{'Épocas':<10}"
             f"{'Accuracy':<12}"
             f"{'Precision':<12}"
             f"{'Recall':<12}"
@@ -271,19 +452,60 @@ class GridSearch:
             f"{'Loss':<12}"
         )
 
-        print("-" * 100)
 
-        for i, result in enumerate(self.results, start=1):
+        print("-" * 150)
 
-            arquitetura = result.params["arquitetura"]
-            activation = result.params["activation"]
-            initializer = result.params["initializer"]
+
+        for i, result in enumerate(
+            self.results,
+            start=1
+        ):
+
+            arquitetura = (
+                result.params[
+                    "arquitetura"
+                ]
+            )
+
+            activation = (
+                result.params[
+                    "activation"
+                ]
+            )
+
+            initializer = (
+                result.params[
+                    "initializer"
+                ]
+            )
+
+            optimizer = (
+                result.params[
+                    "optimizer"
+                ]
+            )
+
+            learning_rate = (
+                result.params[
+                    "learning_rate"
+                ]
+            )
+
+            epochs = (
+                result.params[
+                    "epochs"
+                ]
+            )
+
 
             print(
-                f"{i:<10}"
+                f"{i:<9}"
                 f"{str(arquitetura):<20}"
                 f"{activation:<12}"
-                f"{initializer:<16}"
+                f"{initializer:<18}"
+                f"{optimizer:<14}"
+                f"{learning_rate:<12}"
+                f"{epochs:<10}"
                 f"{result.score:<12.4f}"
                 f"{result.precision:<12.4f}"
                 f"{result.recall:<12.4f}"
@@ -291,13 +513,101 @@ class GridSearch:
                 f"{result.loss:<12.6f}"
             )
 
-        print("=" * 100)
+
+        print("=" * 150)
+
+
+        print(
+            f"\nTotal de configurações avaliadas: "
+            f"{len(self.results)}"
+        )
+
+
+        # ========================================================
+        # MELHOR CONFIGURAÇÃO
+        # ========================================================
+
+        print("\n")
+        print("=" * 60)
+        print("MELHOR CONFIGURAÇÃO")
+        print("=" * 60)
+
 
         print(
             f"Parâmetros: "
             f"{self.pretty_params(self.best_params)}"
         )
 
+        print(
+            f"Accuracy: "
+            f"{self.best_score:.4f}"
+        )
+
+        print(
+            f"Precision: "
+            f"{self.best_precision:.4f}"
+        )
+
+        print(
+            f"Recall: "
+            f"{self.best_recall:.4f}"
+        )
+
+        print(
+            f"F1-score: "
+            f"{self.best_f1:.4f}"
+        )
+
+        print(
+            f"Loss: "
+            f"{self.best_loss:.6f}"
+        )
+
+
+        # ========================================================
+        # PIOR CONFIGURAÇÃO
+        # ========================================================
+
+        print("\n")
+        print("=" * 60)
+        print("PIOR CONFIGURAÇÃO")
+        print("=" * 60)
+
+
+        print(
+            f"Parâmetros: "
+            f"{self.pretty_params(self.worst_params)}"
+        )
+
+        print(
+            f"Accuracy: "
+            f"{self.worst_score:.4f}"
+        )
+
+        print(
+            f"Precision: "
+            f"{self.worst_precision:.4f}"
+        )
+
+        print(
+            f"Recall: "
+            f"{self.worst_recall:.4f}"
+        )
+
+        print(
+            f"F1-score: "
+            f"{self.worst_f1:.4f}"
+        )
+
+        print(
+            f"Loss: "
+            f"{self.worst_loss:.6f}"
+        )
+
+
+    # ============================================================
+    # FORMATAÇÃO DOS PARÂMETROS
+    # ============================================================
 
     def pretty_params(
         self,
@@ -317,7 +627,7 @@ class GridSearch:
             elif key == "optimizer":
 
                 pretty[key] = (
-                    value().__class__.__name__
+                    value.__name__
                 )
 
             elif key == "loss":
