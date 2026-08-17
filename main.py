@@ -124,34 +124,10 @@ def main():
 #             ReLU
 #         ],
 
-#         "optimizer": [
-#             lambda: Adam(
-#                 lr=0.001
-#             )
-#         ],
-
-#         "epochs": [
-#             100
-#         ],
-
-#         "loss": [
-#             MSE
-#         ]
-#     }
-
-
-
-# # EXPERIMENTO 2 - NÚMERO DE CAMADAS OCULTAS
-#     param_grid = {
-#         "arquitetura": [
-#             [32],
-#             [32, 16],
-#             [32, 16, 8],
-#             [32, 16, 8, 4]
-#         ],
-#         "activation": [
-#             ReLU
-#         ],
+#         "initializer": [
+#           HeInitializer,
+#           XavierInitializer
+#          ],
 
 #         "optimizer": [
 #             lambda: Adam(
@@ -173,25 +149,31 @@ def main():
     param_grid = {
 
         "arquitetura": [
-            [32, 16, 8]
+            [64],
+            [64, 32],
+            [64, 32, 16],
+            [64, 32, 16, 8],
+            [64, 32, 16, 8, 4]
         ],
 
         "activation": [
             ReLU,
             Tanh,
             Mish
-
         ],
 
         "initializer": [
-        HeInitializer,
-        XavierInitializer
+            HeInitializer,
+            XavierInitializer
         ],
 
         "optimizer": [
-            lambda: Adam(
-                lr=0.001
-            )
+            "Adam"
+        ],
+
+        "learning_rate": [
+            0.001,
+            0.0001
         ],
 
         "epochs": [
@@ -202,6 +184,41 @@ def main():
             MSE
         ]
     }
+
+
+
+    # param_grid = {
+
+    #     "arquitetura": [
+    #         [32, 16, 8]
+    #     ],
+
+    #     "activation": [
+    #         ReLU,
+    #         Tanh,
+    #         Mish
+
+    #     ],
+
+    #     "initializer": [
+    #     HeInitializer,
+    #     XavierInitializer
+    #     ],
+
+    #     "optimizer": [
+    #         lambda: Adam(
+    #             lr=0.001
+    #         )
+    #     ],
+
+    #     "epochs": [
+    #         100
+    #     ],
+
+    #     "loss": [
+    #         MSE
+    #     ]
+    # }
 
     # ==========================================
     # EXPERIMENTO — INICIALIZADORES
@@ -289,7 +306,7 @@ def main():
 
         resultados_inicializadores.append({
             "Experimento": initializer_name,
-            "Arquitetura": "32-16-8",
+            "Arquitetura": "64-32-16-8",
             "Ativação": "ReLU",
             "Inicializador": initializer_name,
             "Otimizador": "Adam",

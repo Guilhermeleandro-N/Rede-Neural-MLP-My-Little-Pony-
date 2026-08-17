@@ -8,6 +8,8 @@ from mlp.metrics import (
 
 )
 
+from mlp.optimizers import Adam
+
 class ExperimentResult:
 
     def __init__(
@@ -115,6 +117,18 @@ class GridSearch:
                 f"Inicializador: {params['initializer'].__name__}"
             )
 
+            print(
+                f"Otimizador: {params['optimizer']}"
+            )
+
+            print(
+                f"Learning rate: {params['learning_rate']}"
+            )
+
+            print(
+                f"Épocas: {params['epochs']}"
+            )
+
             configuration_number += 1
 
             current_params = (
@@ -127,11 +141,11 @@ class GridSearch:
                 )
             )
 
-            optimizer = (
-                current_params[
-                    "optimizer"
-                ]()
-            )
+            if current_params["optimizer"] == "Adam":
+
+                optimizer = Adam(
+                lr=current_params["learning_rate"]
+    )
 
             loss_function = (
                 current_params[
@@ -257,6 +271,7 @@ class GridSearch:
         print("\n")
         print("=" * 100)
         print("RESULTADOS")
+        print(f"Total de configurações avaliadas: {len(self.results)}")
         print("=" * 100)
 
         print(
@@ -264,6 +279,9 @@ class GridSearch:
             f"{'Arquitetura':<20}"
             f"{'Ativação':<12}"
             f"{'Inicializador':<16}"
+            f"{'Otimizador':<12}"
+            f"{'LR':<10}"
+            f"{'Épocas':<10}"
             f"{'Accuracy':<12}"
             f"{'Precision':<12}"
             f"{'Recall':<12}"
@@ -278,12 +296,18 @@ class GridSearch:
             arquitetura = result.params["arquitetura"]
             activation = result.params["activation"]
             initializer = result.params["initializer"]
+            optimizer = result.params["optimizer"]
+            learning_rate = result.params["learning_rate"]
+            epochs = result.params["epochs"]
 
             print(
                 f"{i:<10}"
                 f"{str(arquitetura):<20}"
                 f"{activation:<12}"
                 f"{initializer:<16}"
+                f"{optimizer:<12}"
+                f"{learning_rate:<10}"
+                f"{epochs:<10}"
                 f"{result.score:<12.4f}"
                 f"{result.precision:<12.4f}"
                 f"{result.recall:<12.4f}"
@@ -316,9 +340,7 @@ class GridSearch:
 
             elif key == "optimizer":
 
-                pretty[key] = (
-                    value().__class__.__name__
-                )
+                pretty[key] = value
 
             elif key == "loss":
 
