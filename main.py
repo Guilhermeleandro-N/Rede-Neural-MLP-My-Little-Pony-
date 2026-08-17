@@ -33,7 +33,12 @@ from mlp.optimizers import (
 
 from mlp.grid_search import GridSearch
 
-from mlp.metrics import Accuracy
+from mlp.metrics import (
+    Accuracy,
+    Precision,
+    Recall,
+    F1Score
+)
 
 
 def build_network(params):
@@ -174,11 +179,32 @@ def main():
         y_test,
         predictions
     )
-
-    print(
-        f"\nAccuracy no teste: "
-        f"{test_accuracy:.4f}"
+    test_precision = Precision.calculate(
+        y_test,
+        predictions
     )
+
+    test_recall = Recall.calculate(
+        y_test,
+        predictions
+    )
+
+    test_f1 = F1Score.calculate(
+        y_test,
+        predictions
+    )
+
+    test_loss = MSE().forward(
+        y_test,
+        predictions
+    )
+
+    print("\nMétricas finais no conjunto de teste:")
+    print(f"Accuracy  = {test_accuracy:.4f}")
+    print(f"Precision = {test_precision:.4f}")
+    print(f"Recall    = {test_recall:.4f}")
+    print(f"F1-score  = {test_f1:.4f}")
+    print(f"Loss      = {test_loss:.6f}")
 
     classes = (
         predictions > 0.5
