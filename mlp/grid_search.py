@@ -57,6 +57,10 @@ class GridSearch:
 
         self.best_loss = float("inf")
 
+        self.best_precision = 0
+        self.best_recall = 0
+        self.best_f1 = 0
+
         self.best_params = None
 
         self.best_model = None
@@ -225,6 +229,12 @@ class GridSearch:
 
                 self.best_score = score
 
+                self.best_precision = precision
+
+                self.best_recall = recall
+
+                self.best_f1 = f1
+
                 self.best_loss = loss
 
                 self.best_params = (
@@ -241,43 +251,46 @@ class GridSearch:
     def summary(self):
 
         print("\n")
-        print("=" * 60)
+        print("=" * 100)
         print("RESULTADOS")
-        print("=" * 60)
-
-        for result in self.results:
-
-            print(
-                f"Accuracy={result.score:.4f}"
-            )
-
-            print(
-                f"Loss={result.loss:.6f}"
-            )
-
-            print(
-                result.params
-            )
-
-            print()
-
-        print("=" * 60)
+        print("=" * 100)
 
         print(
-            f"Melhor Accuracy = "
-            f"{self.best_score:.4f}"
+            f"{'Config.':<10}"
+            f"{'Arquitetura':<20}"
+            f"{'Ativação':<12}"
+            f"{'Accuracy':<12}"
+            f"{'Precision':<12}"
+            f"{'Recall':<12}"
+            f"{'F1-score':<12}"
+            f"{'Loss':<12}"
         )
 
-        print(
-            f"Melhor Loss = "
-            f"{self.best_loss:.6f}"
-        )
+        print("-" * 100)
 
-        print(
-            self.pretty_params(
-                self.best_params
+        for i, result in enumerate(self.results, start=1):
+
+            arquitetura = result.params["arquitetura"]
+            activation = result.params["activation"]
+
+            print(
+                f"{i:<10}"
+                f"{str(arquitetura):<20}"
+                f"{activation:<12}"
+                f"{result.score:<12.4f}"
+                f"{result.precision:<12.4f}"
+                f"{result.recall:<12.4f}"
+                f"{result.f1:<12.4f}"
+                f"{result.loss:<12.6f}"
             )
+
+        print("=" * 100)
+
+        print(
+            f"Parâmetros: "
+            f"{self.pretty_params(self.best_params)}"
         )
+
 
     def pretty_params(
         self,

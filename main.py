@@ -201,25 +201,7 @@ def main():
         y_train
     )
 
-    print("\n")
-    print("=" * 60)
-    print("MELHOR CONFIGURAÇÃO")
-    print("=" * 60)
-
-    print(
-        f"Accuracy de treino: "
-        f"{search.best_score:.4f}"
-    )
-
-    print(
-        f"Loss de treino: "
-        f"{search.best_loss:.6f}"
-    )
-
-    print(
-        f"Parâmetros: "
-        f"{search.best_params}"
-    )
+    search.summary()
 
     # ==========================================
     # Avaliação no conjunto de teste
